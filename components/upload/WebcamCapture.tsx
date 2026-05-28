@@ -4,6 +4,8 @@ import { useRef, useEffect, useState, useCallback } from "react"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { motion } from "framer-motion"
 
+type FacingMode = "user" | "environment"
+
 interface Props {
   open: boolean
   onClose: () => void
@@ -14,24 +16,11 @@ export function WebcamCapture({ open, onClose, onCapture }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const [facing, setFacing] = useState<FacingMode>("user")
   const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [countdown, setCountdown] = useState<number | null>(null)
-
-  const startCamera = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
-      })
-      streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        videoRef.current.onloadedmetadata = () => setReady(true)
-      }
-    } catch {
-      setError("Camera access denied. Please allow camera permissions.")
-    }
-  }, [])
+  const [switching, setSwitching] = useState(false)
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop())
@@ -39,15 +28,49 @@ export function WebcamCapture({ open, onClose, onCapture }: Props) {
     setReady(false)
   }, [])
 
+  const startCamera = useCallback(async (mode: FacingMode) => {
+    stopCamera()
+    setSwitching(true)
+    setError(null)
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: mode,
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      })
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        videoRef.current.onloadedmetadata = () => {
+          setReady(true)
+          setSwitching(false)
+        }
+      }
+    } catch {
+      setError("Camera access denied. Please allow camera permissions.")
+      setSwitching(false)
+    }
+  }, [stopCamera])
+
   useEffect(() => {
     if (open) {
       setError(null)
-      startCamera()
+      setFacing("user")
+      startCamera("user")
     } else {
       stopCamera()
     }
     return () => stopCamera()
-  }, [open, startCamera, stopCamera])
+  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const flipCamera = () => {
+    const next: FacingMode = facing === "user" ? "environment" : "user"
+    setFacing(next)
+    startCamera(next)
+  }
 
   const snap = useCallback(() => {
     if (!videoRef.current || !canvasRef.current) return
@@ -63,9 +86,21 @@ export function WebcamCapture({ open, onClose, onCapture }: Props) {
 
         const video = videoRef.current!
         const canvas = canvasRef.current!
+        const ctx = canvas.getContext("2d")
+        if (!ctx) return
+
         canvas.width = video.videoWidth
         canvas.height = video.videoHeight
-        canvas.getContext("2d")?.drawImage(video, 0, 0)
+
+        // Mirror selfie preview so saved photo matches what user saw
+        if (facing === "user") {
+          ctx.translate(canvas.width, 0)
+          ctx.scale(-1, 1)
+        }
+        ctx.drawImage(video, 0, 0)
+        if (facing === "user") {
+          ctx.setTransform(1, 0, 0, 1, 0, 0)
+        }
 
         canvas.toBlob((blob) => {
           if (!blob) return
@@ -75,7 +110,7 @@ export function WebcamCapture({ open, onClose, onCapture }: Props) {
         }, "image/jpeg", 0.9)
       }
     }, 1000)
-  }, [onCapture, onClose])
+  }, [onCapture, onClose, facing])
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -93,8 +128,27 @@ export function WebcamCapture({ open, onClose, onCapture }: Props) {
                 autoPlay
                 playsInline
                 muted
-                className="w-full rounded-t-lg"
+                className={`w-full rounded-t-lg bg-black aspect-[3/4] object-cover ${
+                  facing === "user" ? "-scale-x-100" : ""
+                }`}
               />
+
+              <button
+                type="button"
+                onClick={flipCamera}
+                disabled={!ready || switching || countdown !== null}
+                aria-label={facing === "user" ? "Switch to back camera" : "Switch to front camera"}
+                className="absolute top-3 right-3 w-11 h-11 rounded-full bg-black/50 border border-white/20 text-white text-lg flex items-center justify-center backdrop-blur-sm hover:bg-black/70 disabled:opacity-40 transition-colors"
+              >
+                🔄
+              </button>
+
+              {(switching || !ready) && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
+                  <span className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+
               <canvas ref={canvasRef} className="hidden" />
 
               {countdown !== null && (
@@ -120,14 +174,14 @@ export function WebcamCapture({ open, onClose, onCapture }: Props) {
           <div className="p-4 flex gap-3">
             <button
               onClick={snap}
-              disabled={!ready || countdown !== null}
-              className="flex-1 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold transition-all hover:scale-105 active:scale-95"
+              disabled={!ready || countdown !== null || switching}
+              className="flex-1 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold transition-colors"
             >
               {countdown !== null ? `Taking shot in ${countdown}...` : "📸 Snap"}
             </button>
             <button
               onClick={onClose}
-              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 transition-all"
+              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 transition-colors"
             >
               Cancel
             </button>

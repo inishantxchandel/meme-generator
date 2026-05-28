@@ -17,12 +17,19 @@ interface Props {
 }
 
 export function ReactionBar({ memeId, initialCounts }: Props) {
-  const { counts, reacted, react, latestEmoji } = useReactions(memeId, initialCounts)
+  const { counts, reacted, toggleReaction, latestEmoji, synced } = useReactions(memeId, initialCounts)
   const total = Object.values(counts).reduce((a, b) => a + b, 0)
+  const myCount = reacted.size
+
+  const footerText =
+    myCount > 0
+      ? `You reacted with ${myCount} emoji${myCount !== 1 ? "s" : ""} · tap again to remove`
+      : total > 0
+      ? `${total} reaction${total !== 1 ? "s" : ""} total`
+      : "Be the first to react"
 
   return (
     <div className="relative">
-      {/* Floating emoji burst */}
       <AnimatePresence>
         {latestEmoji && (
           <motion.div
@@ -38,50 +45,78 @@ export function ReactionBar({ memeId, initialCounts }: Props) {
         )}
       </AnimatePresence>
 
-      <div className="flex items-center justify-center gap-3 flex-wrap">
-        {REACTIONS.map(({ emoji, label }) => {
-          const count = counts[emoji] || 0
-          const hasReacted = reacted.has(emoji)
-
-          return (
-            <motion.button
-              key={emoji}
-              onClick={() => !hasReacted && react(emoji)}
-              disabled={hasReacted}
-              whileHover={hasReacted ? {} : { scale: 1.1, y: -2 }}
-              whileTap={hasReacted ? {} : { scale: 0.9 }}
-              className={`
-                flex flex-col items-center gap-1 px-5 py-3 rounded-2xl
-                transition-all duration-200 min-w-[72px]
-                ${hasReacted
-                  ? "bg-violet-600/30 border border-violet-500/60 text-white cursor-default"
-                  : "bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:border-white/30 cursor-pointer"
-                }
-              `}
-            >
-              <motion.span
-                className="text-3xl leading-none"
-                animate={hasReacted ? { scale: [1, 1.4, 1] } : {}}
-                transition={{ duration: 0.3 }}
-              >
-                {emoji}
-              </motion.span>
-              <span className="text-sm font-bold">{count}</span>
-              <span className="text-xs text-white/40 hidden sm:block">{label}</span>
-            </motion.button>
-          )
-        })}
+      <div className="grid grid-cols-3 gap-3 max-w-[280px] mx-auto">
+        {REACTIONS.slice(0, 3).map(({ emoji, label }) => (
+          <ReactionButton
+            key={emoji}
+            emoji={emoji}
+            label={label}
+            count={counts[emoji] || 0}
+            selected={reacted.has(emoji)}
+            synced={synced}
+            onToggle={() => toggleReaction(emoji)}
+          />
+        ))}
+      </div>
+      <div className="flex justify-center mt-3">
+        <ReactionButton
+          emoji={REACTIONS[3].emoji}
+          label={REACTIONS[3].label}
+          count={counts[REACTIONS[3].emoji] || 0}
+          selected={reacted.has(REACTIONS[3].emoji)}
+          synced={synced}
+          onToggle={() => toggleReaction(REACTIONS[3].emoji)}
+        />
       </div>
 
-      {total > 0 && (
-        <motion.p
-          className="text-center text-white/30 text-xs mt-3"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          {total} reaction{total !== 1 ? "s" : ""} total
-        </motion.p>
-      )}
+      <p className="text-center text-white/30 text-xs mt-3 min-h-[2.5rem] flex items-center justify-center px-2 leading-snug">
+        {footerText}
+      </p>
     </div>
+  )
+}
+
+function ReactionButton({
+  emoji,
+  label,
+  count,
+  selected,
+  synced,
+  onToggle,
+}: {
+  emoji: ReactionEmoji
+  label: string
+  count: number
+  selected: boolean
+  synced: boolean
+  onToggle: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={selected}
+      aria-label={selected ? `Remove ${label} reaction` : `React with ${label}`}
+      className={`
+        flex flex-col items-center justify-center gap-1
+        w-[72px] h-[88px] px-2 py-2 rounded-2xl
+        border-2 transition-colors duration-200 cursor-pointer
+        ${selected
+          ? "bg-violet-600/40 border-violet-400 text-white shadow-lg shadow-violet-500/20"
+          : "bg-white/5 border-transparent text-white/70 hover:bg-white/10 hover:border-white/20"
+        }
+        ${!synced ? "opacity-70" : ""}
+      `}
+    >
+      <span className="text-3xl leading-none">{emoji}</span>
+      <span className="text-sm font-bold tabular-nums leading-none">{count}</span>
+      <span
+        className={`text-[10px] leading-tight text-center h-6 flex items-center justify-center w-full ${
+          selected ? "text-violet-200" : "text-white/40"
+        }`}
+      >
+        {label}
+      </span>
+    </button>
   )
 }
