@@ -7,6 +7,7 @@ import {
 import { Stage, Layer, Image as KonvaImage, Text, Rect, Transformer } from "react-konva"
 import type Konva from "konva"
 import { TEMPLATES } from "@/lib/templates/definitions"
+import { blockInCaptionBar, fitFontSizeToBox } from "@/lib/canvas/fitText"
 import type { TextBlock } from "@/types/template"
 
 export interface CanvasRendererHandle {
@@ -101,42 +102,36 @@ export const CanvasRenderer = forwardRef<CanvasRendererHandle, Props>(
 
       if (!text.trim()) return null
 
-      const fontSize = Math.max(Math.round((block.fontSize / 500) * width), 10)
-      const xPos = block.x * width
-      const yPos = block.y * height
-      const blockWidth = block.width * width
-      const maxHeight = Math.max(height - yPos - 4, fontSize * 1.5)
+      const barFraction = template?.bottomBarFraction
+      const inCaptionBarBlock = blockInCaptionBar(block.y, barFraction)
 
-      // In previewMode: force readable colors regardless of photo background.
-      // Exception: blocks inside the caption bar get dark text (bar is white/light).
-      const inCaptionBar = previewMode && template?.bottomBarFraction
-        ? block.y >= 1 - template.bottomBarFraction
-        : false
+      let baseFontSize = Math.max(Math.round((block.fontSize / 500) * width), 10)
+      let xPos = block.x * width
+      let yPos = block.y * height
+      let blockWidth = block.width * width
+      let maxHeight = Math.max(height - yPos - 4, baseFontSize * 1.5)
 
-      let fill: string
-      let stroke: string | undefined
-      let strokeWidth: number
-      let shadowBlur: number
-
-      if (!previewMode) {
-        fill = block.fill
-        stroke = block.stroke || undefined
-        strokeWidth = block.strokeWidth
-        shadowBlur = block.shadowBlur
-      } else if (inCaptionBar) {
-        // Dark text on light caption bar
-        fill = "#111111"
-        stroke = undefined
-        strokeWidth = 0
-        shadowBlur = 0
-      } else {
-        // White + black stroke on photo — scale stroke with font size for thin fonts
-        fill = "#FFFFFF"
-        stroke = "#000000"
-        // Larger stroke for small/thin fonts (Arial at small canvas sizes)
-        strokeWidth = Math.max(block.strokeWidth, fontSize >= 30 ? 2 : 3)
-        shadowBlur = Math.max(block.shadowBlur, 8)
+      // Caption-bar blocks: use full bar area and auto-shrink font so nothing gets "..."
+      if (inCaptionBarBlock && barFraction) {
+        const barTop = height * (1 - barFraction)
+        const pad = 6
+        xPos = width * block.x
+        yPos = barTop + pad
+        blockWidth = width * block.width
+        maxHeight = height * barFraction - pad * 2
+        baseFontSize = fitFontSizeToBox(
+          text,
+          blockWidth - block.padding * 2,
+          maxHeight,
+          baseFontSize,
+          block.lineHeight
+        )
       }
+
+      const fontSize = baseFontSize
+      const fill = block.fill
+      const stroke = block.strokeWidth > 0 ? block.stroke || undefined : undefined
+      const strokeWidth = block.strokeWidth
 
       return (
         <Text
@@ -152,16 +147,16 @@ export const CanvasRenderer = forwardRef<CanvasRendererHandle, Props>(
           fill={fill}
           stroke={stroke}
           strokeWidth={strokeWidth}
-          shadowEnabled={true}
-          shadowColor="#000000"
-          shadowBlur={shadowBlur}
-          shadowOffsetX={1}
-          shadowOffsetY={1}
+          shadowEnabled={block.shadowEnabled}
+          shadowColor={block.shadowColor}
+          shadowBlur={block.shadowBlur}
+          shadowOffsetX={block.shadowEnabled ? 1 : 0}
+          shadowOffsetY={block.shadowEnabled ? 1 : 0}
           align={block.align}
           lineHeight={block.lineHeight}
           padding={block.padding}
           wrap="word"
-          ellipsis={true}
+          ellipsis={!inCaptionBarBlock}
           draggable={!previewMode && block.draggable}
           listening={!previewMode}
           onClick={() => onBlockSelect?.(block.id)}

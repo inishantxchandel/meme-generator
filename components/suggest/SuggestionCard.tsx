@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { TEMPLATES } from "@/lib/templates/definitions"
-import { analyzeAllBlocks } from "@/lib/canvas/analyzeContrast"
+import { contrastColorsForBlocks, loadImage, mergeContrastIntoBlocks } from "@/lib/canvas/applyContrast"
 import type { Suggestion } from "@/types/meme"
 import type { TextBlock } from "@/types/template"
 
@@ -26,44 +26,31 @@ const VIBE_COLORS: Record<string, string> = {
 
 const TOP_ROLES = new Set(["top", "center", "label1", "overlay"])
 
-function loadImageEl(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image()
-    img.crossOrigin = "anonymous"
-    img.onload = () => resolve(img)
-    img.onerror = reject
-    img.src = src
-  })
-}
-
 /**
  * Build textBlocks for this suggestion — same mapping as selectSuggestion in store.
  * Applies contrast-aware colors so colors in preview match what editor will show.
  */
 function buildTextBlocks(
   suggestion: Suggestion,
-  contrastColors: ReturnType<typeof analyzeAllBlocks>
+  contrastColors: ReturnType<typeof contrastColorsForBlocks>
 ): TextBlock[] {
   const template = TEMPLATES[suggestion.templateId]
   if (!template) return []
 
-  return template.textBlocks.map((block, i) => {
+  const blocks = template.textBlocks.map((block) => {
     const text = TOP_ROLES.has(block.role)
       ? suggestion.captionTop || suggestion.captionBottom || block.defaultText
       : suggestion.captionBottom || suggestion.captionTop || block.defaultText
 
-    const cc = contrastColors[i]
     return {
       ...block,
       defaultText: text,
-      fill: cc?.fill ?? block.fill,
-      stroke: cc?.stroke ?? block.stroke,
-      strokeWidth: cc?.strokeWidth ?? block.strokeWidth,
-      shadowEnabled: cc?.shadowEnabled ?? block.shadowEnabled,
-      shadowColor: cc?.shadowColor ?? block.shadowColor,
-      shadowBlur: cc?.shadowBlur ?? block.shadowBlur,
+      stroke: "",
+      strokeWidth: 0,
     }
   })
+
+  return mergeContrastIntoBlocks(blocks, contrastColors, suggestion.templateId)
 }
 
 interface Props {
@@ -77,7 +64,7 @@ interface Props {
 export function SuggestionCard({ suggestion, imageUrl, index, selected, onClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [canvasSize, setCanvasSize] = useState(200)
-  const [contrastColors, setContrastColors] = useState<ReturnType<typeof analyzeAllBlocks>>([])
+  const [contrastColors, setContrastColors] = useState<ReturnType<typeof contrastColorsForBlocks>>([])
   const template = TEMPLATES[suggestion.templateId]
 
   // Measure container so CanvasRenderer fills the card exactly
@@ -91,22 +78,25 @@ export function SuggestionCard({ suggestion, imageUrl, index, selected, onClick 
     return () => ro.disconnect()
   }, [])
 
-  // Analyze image contrast once image + size are known, then rebuild textBlocks
+  // Sample pixels under each text region for readable default colors
   useEffect(() => {
     if (!template || canvasSize < 10) return
-    const barConfig = template.bottomBarFraction
-      ? { fraction: template.bottomBarFraction, color: template.bottomBarColor ?? "#FFFFFF" }
-      : undefined
-    loadImageEl(imageUrl)
-      .then((img) => setContrastColors(analyzeAllBlocks(img, template.textBlocks, canvasSize, barConfig)))
+    loadImage(imageUrl)
+      .then((img) =>
+        setContrastColors(
+          contrastColorsForBlocks(img, suggestion.templateId, template.textBlocks, canvasSize)
+        )
+      )
       .catch(() => setContrastColors([]))
   }, [imageUrl, suggestion.templateId, canvasSize]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const textBlocks = buildTextBlocks(suggestion, contrastColors)
 
-  // Summary text for the info bar — mirrors what CanvasRenderer will show
-  const topText = textBlocks.find((b) => TOP_ROLES.has(b.role))?.defaultText ?? ""
-  const bottomText = textBlocks.find((b) => !TOP_ROLES.has(b.role))?.defaultText ?? ""
+  // Summary for card footer — prefer the primary visible caption
+  const primaryCaption =
+    suggestion.captionBottom?.trim() ||
+    suggestion.captionTop?.trim() ||
+    textBlocks.map((b) => b.defaultText).filter(Boolean).join(" · ")
 
   return (
     <motion.button
@@ -131,7 +121,7 @@ export function SuggestionCard({ suggestion, imageUrl, index, selected, onClick 
         className="w-full aspect-square overflow-hidden"
         style={{ lineHeight: 0 }}
       >
-        {canvasSize > 10 && (
+        {canvasSize > 10 && contrastColors.length > 0 && (
           <CanvasRenderer
             imageUrl={imageUrl}
             templateId={suggestion.templateId}
@@ -157,11 +147,8 @@ export function SuggestionCard({ suggestion, imageUrl, index, selected, onClick 
             {suggestion.vibe}
           </span>
         </div>
-        <p className="text-white text-[11px] leading-snug line-clamp-2">
-          {topText && <span className="block font-semibold">{topText}</span>}
-          {bottomText && bottomText !== topText && (
-            <span className="block text-white/70 mt-0.5">{bottomText}</span>
-          )}
+        <p className="text-white text-[11px] leading-snug break-words">
+          {primaryCaption}
         </p>
       </div>
 

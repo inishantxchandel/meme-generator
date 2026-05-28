@@ -2,6 +2,7 @@
 
 import { useRef, forwardRef, useImperativeHandle } from "react"
 import { CanvasRenderer, type CanvasRendererHandle } from "./CanvasRenderer"
+import { useAutoContrast } from "@/hooks/useAutoContrast"
 import { useMemeStore } from "@/store/memeStore"
 
 interface Props {
@@ -26,6 +27,8 @@ export const MemeCanvas = forwardRef<MemeCanvasHandle, Props>(
       setActiveTextBlock,
       updateTextBlock,
     } = useMemeStore()
+
+    const refreshContrast = useAutoContrast(width)
 
     useImperativeHandle(ref, () => ({
       exportPng: () => rendererRef.current?.exportPng() ?? Promise.resolve(null),
@@ -100,7 +103,10 @@ export const MemeCanvas = forwardRef<MemeCanvasHandle, Props>(
           previewMode={previewMode}
           activeBlockId={activeTextBlockId}
           onBlockSelect={setActiveTextBlock}
-          onBlockDrag={(id, x, y) => updateTextBlock(id, { x, y })}
+          onBlockDrag={(id, x, y) => {
+            updateTextBlock(id, { x, y })
+            refreshContrast()
+          }}
           onBlockDblClick={handleDblClick}
         />
       </div>

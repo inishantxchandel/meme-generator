@@ -1,7 +1,10 @@
 import { create } from "zustand"
+import { applyContrastToTextBlocks } from "@/lib/canvas/applyContrast"
 import type { Suggestion } from "@/types/meme"
 import type { TextBlock } from "@/types/template"
 import { TEMPLATES } from "@/lib/templates/definitions"
+
+const CONTRAST_CANVAS_SIZE = 480
 
 interface MemeStore {
   // Upload
@@ -88,6 +91,8 @@ export const useMemeStore = create<MemeStore>((set, get) => ({
       defaultText: TOP_ROLES.includes(block.role)
         ? suggestion.captionTop || suggestion.captionBottom || block.defaultText
         : suggestion.captionBottom || suggestion.captionTop || block.defaultText,
+      stroke: "",
+      strokeWidth: 0,
     }))
 
     set({
@@ -95,6 +100,22 @@ export const useMemeStore = create<MemeStore>((set, get) => ({
       selectedTemplateId: suggestion.templateId,
       textBlocks,
     })
+
+    const imageUrl = get().uploadedImageUrl
+    if (imageUrl) {
+      applyContrastToTextBlocks(
+        imageUrl,
+        suggestion.templateId,
+        textBlocks,
+        CONTRAST_CANVAS_SIZE
+      )
+        .then((contrasted) => {
+          if (get().selectedSuggestionIndex === index) {
+            set({ textBlocks: contrasted })
+          }
+        })
+        .catch(() => {})
+    }
   },
 
   updateTextBlock: (id, patch) =>

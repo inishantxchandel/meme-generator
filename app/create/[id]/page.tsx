@@ -11,7 +11,6 @@ import { ExportBar } from "@/components/editor/ExportBar"
 import type { MemeCanvasHandle } from "@/components/editor/MemeCanvas"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useAutoContrast } from "@/hooks/useAutoContrast"
 import { Header } from "@/components/layout/Header"
 
 const MemeCanvas = dynamic(
@@ -119,9 +118,6 @@ export default function CreatePage() {
   const canvasRef = useRef<MemeCanvasHandle>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [canvasSize, setCanvasSize] = useState(400)
-
-  // Auto-set text colors based on image brightness under each text block
-  useAutoContrast(step === "edit" ? canvasSize : 0)
 
   useEffect(() => {
     if (!uploadedImageUrl) {
