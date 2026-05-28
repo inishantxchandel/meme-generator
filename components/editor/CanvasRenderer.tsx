@@ -175,7 +175,12 @@ export const CanvasRenderer = forwardRef<CanvasRendererHandle, Props>(
         ref={stageRef}
         width={width}
         height={height}
-        style={{ display: "block", touchAction: "none" }}
+        style={{
+          display: "block",
+          // Preview cards: allow vertical page scroll on mobile (none blocks touch scrolling)
+          touchAction: previewMode ? "pan-y" : "none",
+          pointerEvents: previewMode ? "none" : "auto",
+        }}
         onMouseDown={(e) => {
           if (e.target === e.target.getStage()) onBlockSelect?.(null)
         }}

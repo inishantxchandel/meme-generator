@@ -99,16 +99,22 @@ export function SuggestionCard({ suggestion, imageUrl, index, selected, onClick 
     textBlocks.map((b) => b.defaultText).filter(Boolean).join(" · ")
 
   return (
-    <motion.button
+    <motion.div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      whileHover={{ scale: 1.03, y: -2 }}
-      whileTap={{ scale: 0.97 }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          onClick()
+        }
+      }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.07, duration: 0.3 }}
       className={`
-        relative rounded-2xl overflow-hidden text-left w-full
-        transition-all duration-200
+        relative rounded-2xl overflow-hidden text-left w-full cursor-pointer
+        transition-all duration-200 active:scale-[0.98]
         ${selected
           ? "ring-2 ring-violet-400 shadow-lg shadow-violet-500/30"
           : "ring-1 ring-white/10 hover:ring-white/30"
@@ -118,7 +124,7 @@ export function SuggestionCard({ suggestion, imageUrl, index, selected, onClick 
       {/* Canvas preview — fills full card */}
       <div
         ref={containerRef}
-        className="w-full aspect-square min-h-[280px] sm:min-h-0 overflow-hidden"
+        className="w-full aspect-square min-h-[280px] sm:min-h-0 overflow-hidden touch-pan-y"
         style={{ lineHeight: 0 }}
       >
         {canvasSize > 10 && contrastColors.length > 0 && (
@@ -162,6 +168,6 @@ export function SuggestionCard({ suggestion, imageUrl, index, selected, onClick 
           ✓
         </motion.div>
       )}
-    </motion.button>
+    </motion.div>
   )
 }

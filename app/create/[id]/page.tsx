@@ -143,7 +143,7 @@ export default function CreatePage() {
   if (!uploadedImageUrl) return null
 
   return (
-    <main className="min-h-screen bg-zinc-950">
+    <main className="min-h-screen bg-zinc-950 overflow-x-hidden">
       <Header
         right={
           <div className="flex items-center gap-3">
