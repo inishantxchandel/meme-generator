@@ -118,7 +118,7 @@ export function SuggestionCard({ suggestion, imageUrl, index, selected, onClick 
       {/* Canvas preview — fills full card */}
       <div
         ref={containerRef}
-        className="w-full aspect-square overflow-hidden"
+        className="w-full aspect-square min-h-[280px] sm:min-h-0 overflow-hidden"
         style={{ lineHeight: 0 }}
       >
         {canvasSize > 10 && contrastColors.length > 0 && (
@@ -147,7 +147,7 @@ export function SuggestionCard({ suggestion, imageUrl, index, selected, onClick 
             {suggestion.vibe}
           </span>
         </div>
-        <p className="text-white text-[11px] leading-snug break-words">
+        <p className="text-white text-xs sm:text-[11px] leading-snug break-words">
           {primaryCaption}
         </p>
       </div>

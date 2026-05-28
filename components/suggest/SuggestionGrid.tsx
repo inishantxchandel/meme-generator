@@ -55,7 +55,7 @@ export function SuggestionGrid({ onSelect }: Props) {
         </span>
       </motion.div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-lg md:max-w-none mx-auto md:mx-0">
         <AnimatePresence>
           {suggestions.map((s, i) => (
             <SuggestionCard

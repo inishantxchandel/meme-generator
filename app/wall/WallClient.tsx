@@ -60,7 +60,7 @@ export function WallClient({ memes }: { memes: Meme[] }) {
             </Link>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-w-lg md:max-w-none mx-auto md:mx-0">
             {memes.map((meme, i) => (
               <motion.div
                 key={meme.id}
@@ -71,7 +71,7 @@ export function WallClient({ memes }: { memes: Meme[] }) {
               >
                 <Link
                   href={`/m/${meme.id}`}
-                  className="flex flex-col h-full rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 hover:border-violet-500/50 hover:scale-[1.02] hover:shadow-xl hover:shadow-violet-500/10 transition-all duration-200 group"
+                  className="flex flex-col h-full w-full rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 hover:border-violet-500/50 md:hover:scale-[1.02] hover:shadow-xl hover:shadow-violet-500/10 transition-all duration-200 group"
                 >
                   <WallMemePreview
                     imageUrl={meme.image_url}

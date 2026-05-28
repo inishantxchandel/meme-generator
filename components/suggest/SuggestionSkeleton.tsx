@@ -17,7 +17,7 @@ export function SuggestionSkeleton() {
       </motion.div>
 
       {/* Card skeletons */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-lg md:max-w-none mx-auto md:mx-0">
         {Array.from({ length: 6 }).map((_, i) => (
           <motion.div
             key={i}
@@ -26,7 +26,7 @@ export function SuggestionSkeleton() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06 }}
           >
-            <div className="w-full aspect-square relative overflow-hidden">
+            <div className="w-full aspect-square min-h-[280px] sm:min-h-0 relative overflow-hidden">
               <Skeleton className="w-full h-full bg-white/8" />
               {/* Shimmer overlay */}
               <motion.div

@@ -209,8 +209,19 @@ export default function CreatePage() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.25 }}
-              className="flex flex-col lg:flex-row gap-6"
             >
+              <button
+                type="button"
+                onClick={() => setStep("suggest")}
+                className="flex items-center gap-2 mb-5 px-3 py-2 -ml-3 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium"
+              >
+                <span className="text-lg leading-none" aria-hidden>
+                  ←
+                </span>
+                Back to meme ideas
+              </button>
+
+              <div className="flex flex-col lg:flex-row gap-6">
               {/* Canvas */}
               <div className="flex-1 flex flex-col items-center">
                 <div ref={containerRef} className="w-full max-w-[480px]">
@@ -239,19 +250,13 @@ export default function CreatePage() {
                   <EditorToolbar />
                 </div>
 
-<div className="rounded-2xl bg-zinc-900 border border-white/10 overflow-hidden">
+                <div className="rounded-2xl bg-zinc-900 border border-white/10 overflow-hidden">
                   <div className="px-4 pt-4 pb-2 border-b border-white/10">
                     <h3 className="text-white font-semibold text-sm">Export & Share</h3>
                   </div>
                   <ExportBar canvasRef={canvasRef} />
                 </div>
-
-                <button
-                  onClick={() => setStep("suggest")}
-                  className="text-white/35 hover:text-white/65 text-sm transition-colors text-center py-2 hover:underline"
-                >
-                  ← Back to suggestions
-                </button>
+              </div>
               </div>
             </motion.div>
           )}
