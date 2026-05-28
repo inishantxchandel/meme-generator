@@ -41,20 +41,22 @@ export const MemeCanvas = forwardRef<MemeCanvasHandle, Props>(
     }
 
     const startInlineEdit = (blockId: string, block: typeof textBlocks[number]) => {
-      // Find the Konva text node via DOM — CanvasRenderer exposes stage via ref
-      // Use a floating textarea overlay positioned over the canvas
       const stageContainer = document.querySelector(`[data-block-edit-stage]`) as HTMLElement
       if (!stageContainer) return
 
       const stageBox = stageContainer.getBoundingClientRect()
-      // Approximate position from normalized coords
       const x = stageBox.left + block.x * width
       const y = stageBox.top + block.y * height
       const fontSize = Math.max(Math.round((block.fontSize / 500) * width), 10)
 
+      const original = block.defaultText
+      // Hide canvas text while textarea is open to avoid double-render
+      updateTextBlock(blockId, { defaultText: "" })
+      setActiveTextBlock(null)
+
       const textarea = document.createElement("textarea")
       document.body.appendChild(textarea)
-      textarea.value = block.defaultText
+      textarea.value = original
       textarea.style.cssText = `
         position: fixed;
         top: ${y}px;
@@ -77,18 +79,20 @@ export const MemeCanvas = forwardRef<MemeCanvasHandle, Props>(
       `
       textarea.focus()
       textarea.select()
-      setActiveTextBlock(null)
 
-      const finish = () => {
-        if (!document.body.contains(textarea)) return
-        updateTextBlock(blockId, { defaultText: textarea.value })
+      let finished = false
+      const finish = (save: boolean) => {
+        if (finished || !document.body.contains(textarea)) return
+        finished = true
+        updateTextBlock(blockId, { defaultText: save ? textarea.value : original })
         document.body.removeChild(textarea)
         setActiveTextBlock(blockId)
       }
       textarea.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" || (e.key === "Enter" && !e.shiftKey)) finish()
+        if (e.key === "Escape") { finish(false); return }
+        if (e.key === "Enter" && !e.shiftKey) finish(true)
       })
-      textarea.addEventListener("blur", finish)
+      textarea.addEventListener("blur", () => finish(true))
     }
 
     return (

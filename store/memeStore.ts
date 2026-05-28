@@ -39,6 +39,8 @@ interface MemeStore {
   setSuggestError: (e: string | null) => void
   selectSuggestion: (index: number) => void
   updateTextBlock: (id: string, patch: Partial<TextBlock>) => void
+  addTextBlock: () => void
+  removeTextBlock: (id: string) => void
   setActiveTextBlock: (id: string | null) => void
 setMemeId: (id: string) => void
   setShareUrl: (url: string) => void
@@ -86,14 +88,16 @@ export const useMemeStore = create<MemeStore>((set, get) => ({
     if (!template) return
 
     const TOP_ROLES = ["top", "center", "label1", "overlay"]
-    const textBlocks = template.textBlocks.map((block) => ({
-      ...block,
-      defaultText: TOP_ROLES.includes(block.role)
-        ? suggestion.captionTop || suggestion.captionBottom || block.defaultText
-        : suggestion.captionBottom || suggestion.captionTop || block.defaultText,
-      stroke: "",
-      strokeWidth: 0,
-    }))
+    const usedCaptions = new Set<string>()
+    const textBlocks = template.textBlocks.map((block) => {
+      const preferred = TOP_ROLES.includes(block.role)
+        ? suggestion.captionTop || suggestion.captionBottom
+        : suggestion.captionBottom || suggestion.captionTop
+      // Use preferred caption only if not already placed on another block
+      const text = preferred && !usedCaptions.has(preferred) ? preferred : ""
+      if (text) usedCaptions.add(text)
+      return { ...block, defaultText: text, stroke: "", strokeWidth: 0 }
+    })
 
     set({
       selectedSuggestionIndex: index,
@@ -121,6 +125,41 @@ export const useMemeStore = create<MemeStore>((set, get) => ({
   updateTextBlock: (id, patch) =>
     set((state) => ({
       textBlocks: state.textBlocks.map((b) => (b.id === id ? { ...b, ...patch } : b)),
+    })),
+
+  addTextBlock: () => {
+    const id = `text-${Date.now()}`
+    const newBlock: TextBlock = {
+      id,
+      role: "overlay",
+      defaultText: "Text",
+      x: 0.1,
+      y: 0.45,
+      width: 0.8,
+      align: "center",
+      fontFamily: "Impact",
+      fontSize: 48,
+      fill: "#FFFFFF",
+      stroke: "",
+      strokeWidth: 0,
+      shadowEnabled: true,
+      shadowColor: "#000000",
+      shadowBlur: 4,
+      draggable: true,
+      upperCase: false,
+      padding: 4,
+      lineHeight: 1.2,
+    }
+    set((state) => ({
+      textBlocks: [...state.textBlocks, newBlock],
+      activeTextBlockId: id,
+    }))
+  },
+
+  removeTextBlock: (id) =>
+    set((state) => ({
+      textBlocks: state.textBlocks.filter((b) => b.id !== id),
+      activeTextBlockId: state.activeTextBlockId === id ? null : state.activeTextBlockId,
     })),
 
   setActiveTextBlock: (id) => set({ activeTextBlockId: id }),

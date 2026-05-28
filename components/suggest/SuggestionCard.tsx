@@ -37,17 +37,14 @@ function buildTextBlocks(
   const template = TEMPLATES[suggestion.templateId]
   if (!template) return []
 
+  const usedCaptions = new Set<string>()
   const blocks = template.textBlocks.map((block) => {
-    const text = TOP_ROLES.has(block.role)
-      ? suggestion.captionTop || suggestion.captionBottom || block.defaultText
-      : suggestion.captionBottom || suggestion.captionTop || block.defaultText
-
-    return {
-      ...block,
-      defaultText: text,
-      stroke: "",
-      strokeWidth: 0,
-    }
+    const preferred = TOP_ROLES.has(block.role)
+      ? suggestion.captionTop || suggestion.captionBottom
+      : suggestion.captionBottom || suggestion.captionTop
+    const text = preferred && !usedCaptions.has(preferred) ? preferred : ""
+    if (text) usedCaptions.add(text)
+    return { ...block, defaultText: text, stroke: "", strokeWidth: 0 }
   })
 
   return mergeContrastIntoBlocks(blocks, contrastColors, suggestion.templateId)
