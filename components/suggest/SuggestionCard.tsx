@@ -113,7 +113,7 @@ export function SuggestionCard({ suggestion, imageUrl, index, selected, onClick 
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.07, duration: 0.3 }}
       className={`
-        relative rounded-2xl overflow-hidden text-left w-full cursor-pointer
+        rounded-2xl overflow-hidden text-left w-full cursor-pointer bg-zinc-900
         transition-all duration-200 active:scale-[0.98]
         ${selected
           ? "ring-2 ring-violet-400 shadow-lg shadow-violet-500/30"
@@ -121,28 +121,41 @@ export function SuggestionCard({ suggestion, imageUrl, index, selected, onClick 
         }
       `}
     >
-      {/* Canvas preview — fills full card */}
-      <div
-        ref={containerRef}
-        className="w-full aspect-square min-h-[280px] sm:min-h-0 overflow-hidden touch-pan-y"
-        style={{ lineHeight: 0 }}
-      >
-        {canvasSize > 10 && contrastColors.length > 0 && (
-          <CanvasRenderer
-            imageUrl={imageUrl}
-            templateId={suggestion.templateId}
-            textBlocks={textBlocks}
-            width={canvasSize}
-            height={canvasSize}
-            previewMode={true}
-          />
+      {/* Meme preview only — no metadata on top of the image */}
+      <div className="relative">
+        <div
+          ref={containerRef}
+          className="w-full aspect-square min-h-[280px] sm:min-h-0 overflow-hidden touch-pan-y bg-black"
+          style={{ lineHeight: 0 }}
+        >
+          {canvasSize > 10 && contrastColors.length > 0 && (
+            <CanvasRenderer
+              imageUrl={imageUrl}
+              templateId={suggestion.templateId}
+              textBlocks={textBlocks}
+              width={canvasSize}
+              height={canvasSize}
+              previewMode={true}
+            />
+          )}
+        </div>
+
+        {selected && (
+          <motion.div
+            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-violet-600 border-2 border-white flex items-center justify-center text-white text-xs font-bold shadow-lg"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 15 }}
+          >
+            ✓
+          </motion.div>
         )}
       </div>
 
-      {/* Info bar — overlaid at bottom of image */}
-      <div className="absolute bottom-0 left-0 right-0 p-2.5 bg-linear-to-t from-black/80 via-black/50 to-transparent">
-        <div className="flex items-center justify-between gap-1 mb-1">
-          <span className="text-white/70 text-[11px] font-medium">
+      {/* Template, vibe, and caption — below the meme */}
+      <div className="px-3 py-2.5 border-t border-white/10 space-y-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-white/50 text-[11px] font-medium">
             {template?.name ?? suggestion.templateId}
           </span>
           <span
@@ -153,21 +166,12 @@ export function SuggestionCard({ suggestion, imageUrl, index, selected, onClick 
             {suggestion.vibe}
           </span>
         </div>
-        <p className="text-white text-xs sm:text-[11px] leading-snug break-words">
-          {primaryCaption}
-        </p>
+        {primaryCaption && (
+          <p className="text-white/80 text-xs leading-snug wrap-break-word line-clamp-2">
+            {primaryCaption}
+          </p>
+        )}
       </div>
-
-      {selected && (
-        <motion.div
-          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-violet-600 border-2 border-white flex items-center justify-center text-white text-xs font-bold shadow-lg"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 400, damping: 15 }}
-        >
-          ✓
-        </motion.div>
-      )}
     </motion.div>
   )
 }
