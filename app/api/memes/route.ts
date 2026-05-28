@@ -40,8 +40,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to save meme" }, { status: 500 })
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || ""
-    return NextResponse.json({ id, shareUrl: `${appUrl}/m/${id}` })
+    // Always return a path — client builds absolute URL (avoids double-origin bugs)
+    return NextResponse.json({ id, shareUrl: `/m/${id}` })
   } catch (error) {
     console.error("Memes POST error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

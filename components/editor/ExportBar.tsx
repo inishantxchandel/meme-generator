@@ -3,6 +3,11 @@
 import { useCallback, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useMemeStore } from "@/store/memeStore"
+import {
+  copyImageToClipboard,
+  copyTextToClipboard,
+  toAbsoluteShareUrl,
+} from "@/lib/share/url"
 import { toast } from "sonner"
 import type { MemeCanvasHandle } from "./MemeCanvas"
 
@@ -14,20 +19,27 @@ export function ExportBar({ canvasRef }: Props) {
   const {
     uploadedImageUrl, uploadedImagePath, selectedTemplateId,
     textBlocks, isExporting, setIsExporting, setShareUrl,
-    setMemeId, shareUrl, currentMemeId,
+    setMemeId, shareUrl,
   } = useMemeStore()
 
-  const [copied, setCopied] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
+  const [imageCopied, setImageCopied] = useState(false)
+
+  const absoluteShareUrl = shareUrl ? toAbsoluteShareUrl(shareUrl) : ""
 
   const saveMeme = useCallback(async () => {
     if (!canvasRef.current || isExporting) return
+    if (!uploadedImageUrl || !uploadedImagePath) {
+      toast.error("Missing upload data — go back and re-upload your photo")
+      return
+    }
+
     setIsExporting(true)
 
     try {
       const dataUrl = await canvasRef.current.exportPng()
       if (!dataUrl) throw new Error("Export failed")
 
-      // Upload the rendered PNG so wall + share page both show the final meme
       let exportUrl: string | null = null
       try {
         const blob = await fetch(dataUrl).then((r) => r.blob())
@@ -40,7 +52,7 @@ export function ExportBar({ canvasRef }: Props) {
           exportUrl = uploadData.url
         }
       } catch {
-        // Non-fatal — meme saves without export_url, wall falls back to canvas render
+        // Non-fatal — meme saves without export_url
       }
 
       const captionTop = textBlocks.find((b) => b.role === "top" || b.role === "label1" || b.role === "center")?.defaultText ?? ""
@@ -64,14 +76,14 @@ export function ExportBar({ canvasRef }: Props) {
       })
 
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
+      if (!res.ok) throw new Error(data.error ?? "Save failed")
 
       setMemeId(data.id)
       setShareUrl(data.shareUrl)
       toast.success("Meme saved! Share link ready.")
     } catch (e) {
       console.error(e)
-      toast.error("Save failed. Try again.")
+      toast.error(e instanceof Error ? e.message : "Save failed. Try again.")
     } finally {
       setIsExporting(false)
     }
@@ -80,7 +92,10 @@ export function ExportBar({ canvasRef }: Props) {
   const downloadPng = useCallback(async () => {
     if (!canvasRef.current) return
     const dataUrl = await canvasRef.current.exportPng()
-    if (!dataUrl) return
+    if (!dataUrl) {
+      toast.error("Could not export image")
+      return
+    }
 
     const a = document.createElement("a")
     a.href = dataUrl
@@ -89,29 +104,41 @@ export function ExportBar({ canvasRef }: Props) {
     toast.success("PNG downloaded!")
   }, [canvasRef])
 
-  const copyToClipboard = useCallback(async () => {
+  const copyImage = useCallback(async () => {
     if (!canvasRef.current) return
-    try {
-      const dataUrl = await canvasRef.current.exportPng()
-      if (!dataUrl) return
+    const dataUrl = await canvasRef.current.exportPng()
+    if (!dataUrl) {
+      toast.error("Could not export image")
+      return
+    }
 
-      const blob = await fetch(dataUrl).then((r) => r.blob())
-      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })])
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-      toast.success("Copied to clipboard!")
-    } catch {
-      toast.error("Copy failed — browser may not support this")
+    const result = await copyImageToClipboard(dataUrl)
+    if (result === "clipboard") {
+      setImageCopied(true)
+      setTimeout(() => setImageCopied(false), 2000)
+      toast.success("Image copied to clipboard!")
+    } else if (result === "download") {
+      toast.success("Clipboard unavailable — PNG downloaded instead")
+    } else {
+      toast.error("Copy failed — try Download PNG")
     }
   }, [canvasRef])
 
-  const copyLink = useCallback(() => {
-    if (!shareUrl) return
-    const fullUrl = `${window.location.origin}${shareUrl}`
-    navigator.clipboard.writeText(fullUrl)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-    toast.success("Share link copied!")
+  const copyLink = useCallback(async () => {
+    if (!shareUrl) {
+      toast.error("Save the meme first to get a share link")
+      return
+    }
+
+    const fullUrl = toAbsoluteShareUrl(shareUrl)
+    const ok = await copyTextToClipboard(fullUrl)
+    if (ok) {
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2000)
+      toast.success("Share link copied!")
+    } else {
+      toast.error("Could not copy — select the link and copy manually")
+    }
   }, [shareUrl])
 
   return (
@@ -143,23 +170,23 @@ export function ExportBar({ canvasRef }: Props) {
             <p className="text-violet-300 text-xs mb-2 font-medium">Share link ready!</p>
             <div className="flex gap-2">
               <code className="flex-1 text-white/80 text-xs bg-black/30 rounded-lg px-3 py-2 truncate">
-                {`${typeof window !== "undefined" ? window.location.origin : ""}${shareUrl}`}
+                {absoluteShareUrl}
               </code>
               <button
+                type="button"
                 onClick={copyLink}
-                className="px-3 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm transition-all hover:scale-105"
+                className="px-3 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm transition-colors shrink-0"
               >
-                {copied ? "✓" : "Copy"}
+                {linkCopied ? "✓" : "Copy"}
               </button>
             </div>
           </motion.div>
 
-          {/* View share page */}
           <a
-            href={shareUrl}
+            href={absoluteShareUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 font-medium text-center transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="block w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 font-medium text-center transition-colors"
           >
             🔗 View Share Page →
           </a>
@@ -168,16 +195,18 @@ export function ExportBar({ canvasRef }: Props) {
 
       <div className="flex gap-2">
         <button
+          type="button"
           onClick={downloadPng}
-          className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 text-sm font-medium transition-all hover:scale-105 active:scale-95"
+          className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 text-sm font-medium transition-colors"
         >
           ⬇ PNG
         </button>
         <button
-          onClick={copyToClipboard}
-          className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 text-sm font-medium transition-all hover:scale-105 active:scale-95"
+          type="button"
+          onClick={copyImage}
+          className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 text-sm font-medium transition-colors"
         >
-          {copied ? "✓ Copied" : "📋 Copy"}
+          {imageCopied ? "✓ Copied" : "📋 Copy image"}
         </button>
       </div>
     </div>

@@ -8,6 +8,7 @@ import { ReactionBar } from "@/components/share/ReactionBar"
 import { Header } from "@/components/layout/Header"
 import Link from "next/link"
 import type { ReactionCounts } from "@/types/meme"
+import { copyTextToClipboard } from "@/lib/share/url"
 
 const MemeCanvas = dynamic(
   () => import("@/components/editor/MemeCanvas").then((m) => m.MemeCanvas),
@@ -33,10 +34,12 @@ interface Props {
 export function SharePageClient({ meme, initialCounts }: Props) {
   const [copied, setCopied] = useState(false)
 
-  const copyLink = () => {
-    navigator.clipboard.writeText(window.location.href)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  const copyLink = async () => {
+    const ok = await copyTextToClipboard(window.location.href)
+    if (ok) {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
   }
 
   return (
