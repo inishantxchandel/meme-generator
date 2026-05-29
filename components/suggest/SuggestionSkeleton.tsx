@@ -26,11 +26,11 @@ export function SuggestionSkeleton() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06 }}
           >
-            <div className="w-full aspect-square min-h-[280px] sm:min-h-0 relative overflow-hidden">
+            <div className="w-full aspect-square relative overflow-hidden">
               <Skeleton className="w-full h-full bg-white/8" />
               {/* Shimmer overlay */}
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
+                className="absolute inset-0 bg-linear-to-r from-transparent via-white/5 to-transparent"
                 animate={{ x: ["-100%", "100%"] }}
                 transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.1, ease: "easeInOut" }}
               />

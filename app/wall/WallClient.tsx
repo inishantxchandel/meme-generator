@@ -17,7 +17,12 @@ interface Meme {
 
 export function WallClient({ memes }: { memes: Meme[] }) {
   return (
-    <main className="min-h-screen bg-zinc-950">
+    <main className="min-h-screen bg-zinc-950 relative overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl" />
+      </div>
+
       <Header
         right={
           <Link
@@ -29,7 +34,7 @@ export function WallClient({ memes }: { memes: Meme[] }) {
         }
       />
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 py-8">
         <motion.div
           className="mb-8"
           initial={{ opacity: 0, y: -10 }}
@@ -88,7 +93,7 @@ export function WallClient({ memes }: { memes: Meme[] }) {
                         ? `"${meme.caption_bottom}"`
                         : "View meme"}
                     </p>
-                    <p className="text-white/25 text-xs mt-1.5">
+                    <p className="text-white/35 text-xs mt-1.5">
                       {new Date(meme.created_at).toLocaleDateString(undefined, {
                         month: "short",
                         day: "numeric",

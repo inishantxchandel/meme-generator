@@ -122,7 +122,7 @@ export function SuggestionCard({ suggestion, imageUrl, index, selected, onClick 
       <div className="relative">
         <div
           ref={containerRef}
-          className="w-full aspect-square min-h-[280px] sm:min-h-0 overflow-hidden touch-pan-y bg-black"
+          className="w-full aspect-square overflow-hidden touch-pan-y bg-black"
           style={{ lineHeight: 0 }}
         >
           {canvasSize > 10 && contrastColors.length > 0 && (
@@ -152,11 +152,11 @@ export function SuggestionCard({ suggestion, imageUrl, index, selected, onClick 
       {/* Template, vibe, and caption — below the meme */}
       <div className="px-3 py-2.5 border-t border-white/10 space-y-1.5">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-white/50 text-[11px] font-medium">
+          <span className="text-white/60 text-xs font-medium">
             {template?.name ?? suggestion.templateId}
           </span>
           <span
-            className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium shrink-0 ${
+            className={`text-[11px] px-2 py-0.5 rounded-full border font-medium shrink-0 ${
               VIBE_COLORS[suggestion.vibe] ?? "bg-white/10 text-white/50"
             }`}
           >
@@ -164,7 +164,7 @@ export function SuggestionCard({ suggestion, imageUrl, index, selected, onClick 
           </span>
         </div>
         {primaryCaption && (
-          <p className="text-white/80 text-xs leading-snug wrap-break-word line-clamp-2">
+          <p className="text-white/85 text-xs leading-snug wrap-break-word line-clamp-2">
             {primaryCaption}
           </p>
         )}

@@ -186,7 +186,7 @@ export function ExportBar({ canvasRef }: Props) {
             href={absoluteShareUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 font-medium text-center transition-colors"
+            className="block w-full py-2.5 rounded-xl bg-violet-600/20 hover:bg-violet-600/35 border border-violet-500/40 hover:border-violet-500/70 text-violet-300 hover:text-violet-200 font-medium text-center transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             🔗 View Share Page →
           </a>
@@ -197,14 +197,14 @@ export function ExportBar({ canvasRef }: Props) {
         <button
           type="button"
           onClick={downloadPng}
-          className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 text-sm font-medium transition-colors"
+          className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/75 hover:text-white text-sm font-medium transition-all hover:scale-[1.02] active:scale-[0.98]"
         >
           ⬇ PNG
         </button>
         <button
           type="button"
           onClick={copyImage}
-          className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 text-sm font-medium transition-colors"
+          className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/75 hover:text-white text-sm font-medium transition-all hover:scale-[1.02] active:scale-[0.98]"
         >
           {imageCopied ? "✓ Copied" : "📋 Copy image"}
         </button>

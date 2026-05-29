@@ -38,7 +38,7 @@ export function WallMemePreview({ imageUrl, exportUrl, templateId, captionTop, c
   if (exportUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={exportUrl} alt="meme" className="w-full aspect-square min-h-[280px] sm:min-h-0 object-cover" />
+      <img src={exportUrl} alt="meme" className="w-full aspect-square object-cover" />
     )
   }
 
@@ -54,7 +54,7 @@ export function WallMemePreview({ imageUrl, exportUrl, templateId, captionTop, c
     : []
 
   return (
-    <div ref={containerRef} className="w-full aspect-square min-h-[280px] sm:min-h-0 overflow-hidden" style={{ lineHeight: 0 }}>
+    <div ref={containerRef} className="w-full aspect-square overflow-hidden" style={{ lineHeight: 0 }}>
       {size > 0 && template ? (
         <CanvasRenderer
           imageUrl={imageUrl}

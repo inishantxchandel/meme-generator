@@ -131,7 +131,7 @@ export function UploadZone() {
                 <h2 className="text-2xl font-bold text-white mb-2">
                   {isDragging ? "Drop it!" : "Drop a photo here"}
                 </h2>
-                <p className="text-white/50 text-sm">
+                <p className="text-white/55 text-sm">
                   or click to browse · paste from clipboard
                 </p>
               </div>
@@ -148,7 +148,7 @@ export function UploadZone() {
                 </button>
               </div>
 
-              <p className="text-white/30 text-xs mt-2">
+              <p className="text-white/45 text-xs mt-2">
                 JPEG, PNG, GIF, WebP · Max 5MB
               </p>
             </motion.div>

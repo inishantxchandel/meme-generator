@@ -139,33 +139,36 @@ export function EditorToolbar() {
         />
       </div>
 
-      {/* Toggles */}
-      <div className="flex gap-2 flex-wrap">
-        <ToggleButton
-          active={activeBlock.shadowEnabled}
-          onClick={() => update({ shadowEnabled: !activeBlock.shadowEnabled })}
-          label="Shadow"
-        />
-        <ToggleButton
-          active={activeBlock.upperCase}
-          onClick={() => update({ upperCase: !activeBlock.upperCase })}
-          label="CAPS"
-        />
-        <ToggleButton
-          active={activeBlock.align === "left"}
-          onClick={() => update({ align: "left" })}
-          label="←"
-        />
-        <ToggleButton
-          active={activeBlock.align === "center"}
-          onClick={() => update({ align: "center" })}
-          label="≡"
-        />
-        <ToggleButton
-          active={activeBlock.align === "right"}
-          onClick={() => update({ align: "right" })}
-          label="→"
-        />
+      {/* Style & alignment toggles */}
+      <div>
+        <label className="text-white/60 text-xs uppercase tracking-wide mb-2 block">Style &amp; Align</label>
+        <div className="flex gap-2 flex-wrap">
+          <ToggleButton
+            active={activeBlock.shadowEnabled}
+            onClick={() => update({ shadowEnabled: !activeBlock.shadowEnabled })}
+            label="Shadow"
+          />
+          <ToggleButton
+            active={activeBlock.upperCase}
+            onClick={() => update({ upperCase: !activeBlock.upperCase })}
+            label="CAPS"
+          />
+          <ToggleButton
+            active={activeBlock.align === "left"}
+            onClick={() => update({ align: "left" })}
+            label="← Left"
+          />
+          <ToggleButton
+            active={activeBlock.align === "center"}
+            onClick={() => update({ align: "center" })}
+            label="≡ Center"
+          />
+          <ToggleButton
+            active={activeBlock.align === "right"}
+            onClick={() => update({ align: "right" })}
+            label="→ Right"
+          />
+        </div>
       </div>
     </div>
   )

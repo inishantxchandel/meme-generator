@@ -45,8 +45,8 @@ export function ReactionBar({ memeId, initialCounts }: Props) {
         )}
       </AnimatePresence>
 
-      <div className="grid grid-cols-3 gap-3 max-w-[280px] mx-auto">
-        {REACTIONS.slice(0, 3).map(({ emoji, label }) => (
+      <div className="grid grid-cols-2 gap-3 mx-auto w-fit">
+        {REACTIONS.map(({ emoji, label }) => (
           <ReactionButton
             key={emoji}
             emoji={emoji}
@@ -58,18 +58,8 @@ export function ReactionBar({ memeId, initialCounts }: Props) {
           />
         ))}
       </div>
-      <div className="flex justify-center mt-3">
-        <ReactionButton
-          emoji={REACTIONS[3].emoji}
-          label={REACTIONS[3].label}
-          count={counts[REACTIONS[3].emoji] || 0}
-          selected={reacted.has(REACTIONS[3].emoji)}
-          synced={synced}
-          onToggle={() => toggleReaction(REACTIONS[3].emoji)}
-        />
-      </div>
 
-      <p className="text-center text-white/30 text-xs mt-3 min-h-[2.5rem] flex items-center justify-center px-2 leading-snug">
+      <p className="text-center text-white/45 text-xs mt-3 min-h-10 flex items-center justify-center px-2 leading-snug">
         {footerText}
       </p>
     </div>

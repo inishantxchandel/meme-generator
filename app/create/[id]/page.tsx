@@ -235,7 +235,7 @@ export default function CreatePage() {
                       height={canvasSize}
                     />
                   </div>
-                  <p className="text-white/25 text-xs text-center mt-2">
+                  <p className="text-white/45 text-xs text-center mt-2">
                     Tap text to select · Double-tap to edit · Drag to move
                   </p>
                 </div>

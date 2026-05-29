@@ -115,12 +115,12 @@ export function SharePageClient({ meme, initialCounts }: Props) {
 
           {/* Caption */}
           {(meme.caption_top || meme.caption_bottom) && (
-            <div className="rounded-2xl bg-zinc-900/60 border border-white/8 px-4 py-3 text-center">
+            <div className="rounded-2xl bg-zinc-900/60 border border-white/10 px-4 py-3 text-center">
               {meme.caption_top && (
                 <p className="text-white text-sm font-semibold leading-snug">{meme.caption_top}</p>
               )}
               {meme.caption_bottom && (
-                <p className="text-white/60 text-sm mt-1 leading-snug">{meme.caption_bottom}</p>
+                <p className="text-white/70 text-sm mt-1 leading-snug">{meme.caption_bottom}</p>
               )}
             </div>
           )}
