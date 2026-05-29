@@ -46,7 +46,23 @@ export function contrastColorsForBlocks(
   blocks: Array<{ x: number; y: number; width: number }>,
   canvasSize: number
 ): ContrastColors[] {
-  return analyzeAllBlocks(img, blocks, canvasSize, analyzeOptionsForTemplate(templateId))
+  const template = templateId ? TEMPLATES[templateId] : undefined
+  const opts = analyzeOptionsForTemplate(templateId)
+  const perBlock = analyzeAllBlocks(img, blocks, canvasSize, opts)
+
+  // Consensus: compute one color for all non-bar blocks so a single meme never
+  // mixes white-on-dark with dark-on-light (looks inconsistent and broken).
+  // Any block that needs white drives the whole meme to white.
+  const hasWhiteBlock = perBlock.some((c, i) => {
+    const inBar = blockInCaptionBar(blocks[i].y, template?.bottomBarFraction)
+    return !inBar && c.fill === WHITE_ON_DARK.fill
+  })
+  const consensus = hasWhiteBlock ? WHITE_ON_DARK : DARK_ON_LIGHT
+
+  return perBlock.map((c, i) => {
+    const inBar = blockInCaptionBar(blocks[i].y, template?.bottomBarFraction)
+    return inBar ? c : consensus
+  })
 }
 
 export function mergeContrastIntoBlocks(

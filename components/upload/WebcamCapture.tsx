@@ -128,7 +128,7 @@ export function WebcamCapture({ open, onClose, onCapture }: Props) {
                 autoPlay
                 playsInline
                 muted
-                className={`w-full rounded-t-lg bg-black aspect-[3/4] object-cover ${
+                className={`w-full rounded-t-lg bg-black aspect-3/4 object-cover ${
                   facing === "user" ? "-scale-x-100" : ""
                 }`}
               />
@@ -138,7 +138,7 @@ export function WebcamCapture({ open, onClose, onCapture }: Props) {
                 onClick={flipCamera}
                 disabled={!ready || switching || countdown !== null}
                 aria-label={facing === "user" ? "Switch to back camera" : "Switch to front camera"}
-                className="absolute top-3 right-3 w-11 h-11 rounded-full bg-black/50 border border-white/20 text-white text-lg flex items-center justify-center backdrop-blur-sm hover:bg-black/70 disabled:opacity-40 transition-colors"
+                className="absolute top-3 right-3 w-11 h-11 rounded-full bg-black/50 border border-white/20 text-white text-lg flex items-center justify-center backdrop-blur-sm hover:bg-black/70 disabled:opacity-40 transition-colors cursor-pointer disabled:cursor-not-allowed"
               >
                 🔄
               </button>
@@ -175,13 +175,13 @@ export function WebcamCapture({ open, onClose, onCapture }: Props) {
             <button
               onClick={snap}
               disabled={!ready || countdown !== null || switching}
-              className="flex-1 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold transition-colors"
+              className="flex-1 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer text-white font-semibold transition-colors"
             >
               {countdown !== null ? `Taking shot in ${countdown}...` : "📸 Snap"}
             </button>
             <button
               onClick={onClose}
-              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 transition-colors"
+              className="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 transition-colors cursor-pointer"
             >
               Cancel
             </button>

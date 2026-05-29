@@ -7,6 +7,25 @@ import { useMemeStore } from "@/store/memeStore"
 import { WebcamCapture } from "./WebcamCapture"
 import compressImage from "browser-image-compression"
 
+function isHeicFile(file: File): boolean {
+  return (
+    file.type === "image/heic" ||
+    file.type === "image/heif" ||
+    /\.(heic|heif)$/i.test(file.name)
+  )
+}
+
+async function toJpeg(file: File): Promise<File> {
+  const heic2any = (await import("heic2any")).default as (opts: {
+    blob: Blob
+    toType: string
+    quality?: number
+  }) => Promise<Blob | Blob[]>
+  const result = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.92 })
+  const blob = Array.isArray(result) ? result[0] : result
+  return new File([blob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), { type: "image/jpeg" })
+}
+
 export function UploadZone() {
   const [isDragging, setIsDragging] = useState(false)
   const [showWebcam, setShowWebcam] = useState(false)
@@ -16,8 +35,18 @@ export function UploadZone() {
 
   const handleFile = useCallback(
     async (file: File) => {
-      if (!file.type.startsWith("image/")) return
-      const compressed = await compressImage(file, {
+      if (!file.type.startsWith("image/") && !isHeicFile(file)) return
+
+      let processedFile = file
+      if (isHeicFile(file)) {
+        try {
+          processedFile = await toJpeg(file)
+        } catch {
+          // fallback: attempt compress anyway
+        }
+      }
+
+      const compressed = await compressImage(processedFile, {
         maxSizeMB: 4,
         maxWidthOrHeight: 1920,
         useWebWorker: true,
@@ -89,7 +118,7 @@ export function UploadZone() {
         <input
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,.heic,.heif"
           className="hidden"
           onChange={onInputChange}
         />
@@ -109,7 +138,7 @@ export function UploadZone() {
               </div>
               <div className="text-center">
                 <p className="text-white font-semibold text-lg">Uploading photo</p>
-                <p className="text-white/40 text-sm mt-1">Getting Claude ready to analyze...</p>
+                <p className="text-white/45 text-sm mt-1">Getting Claude ready to analyze...</p>
               </div>
             </motion.div>
           ) : (
@@ -137,19 +166,21 @@ export function UploadZone() {
               </div>
 
               <div className="flex gap-3 mt-2">
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={(e) => {
                     e.stopPropagation()
                     setShowWebcam(true)
                   }}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 text-sm font-medium transition-all hover:scale-105 active:scale-95"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 text-sm font-medium transition-colors cursor-pointer"
                 >
                   📷 Use Camera
-                </button>
+                </motion.button>
               </div>
 
               <p className="text-white/45 text-xs mt-2">
-                JPEG, PNG, GIF, WebP · Max 5MB
+                JPEG, PNG, GIF, WebP, HEIC/HEIF · Max 5MB
               </p>
             </motion.div>
           )}

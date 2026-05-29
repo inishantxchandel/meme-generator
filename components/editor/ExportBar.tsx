@@ -147,9 +147,17 @@ export function ExportBar({ canvasRef }: Props) {
         <motion.button
           onClick={saveMeme}
           disabled={isExporting}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.97 }}
-          className="w-full py-3 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-lg transition-all flex items-center justify-center gap-2"
+          whileHover={!isExporting ? { scale: 1.02 } : {}}
+          whileTap={!isExporting ? { scale: 0.97 } : {}}
+          animate={!isExporting ? {
+            boxShadow: [
+              "0 0 0 0 rgba(124,58,237,0)",
+              "0 0 22px 6px rgba(124,58,237,0.35)",
+              "0 0 0 0 rgba(124,58,237,0)",
+            ],
+          } : {}}
+          transition={!isExporting ? { duration: 2.2, repeat: Infinity, ease: "easeInOut" } : {}}
+          className="w-full py-3 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-white font-bold text-lg transition-colors flex items-center justify-center gap-2"
         >
           {isExporting ? (
             <>
@@ -175,7 +183,7 @@ export function ExportBar({ canvasRef }: Props) {
               <button
                 type="button"
                 onClick={copyLink}
-                className="px-3 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm transition-colors shrink-0"
+                className="px-3 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm transition-colors shrink-0 cursor-pointer"
               >
                 {linkCopied ? "✓" : "Copy"}
               </button>

@@ -73,14 +73,14 @@ export default function Home() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.4 }}
         >
-          <p className="text-center text-white/25 text-xs uppercase tracking-widest mb-3">How it works</p>
+          <p className="text-center text-white/55 text-xs font-semibold uppercase tracking-widest mb-3">How it works</p>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-x-1 gap-y-3 sm:gap-y-0 max-w-xs sm:max-w-lg mx-auto">
             {STEPS.map((step, i) => (
               <div key={i} className="flex flex-col items-center gap-1.5 py-1.5 relative">
                 <span className="text-xl leading-none">{step.icon}</span>
-                <span className="text-white/50 text-[11px] whitespace-nowrap">{step.label}</span>
+                <span className="text-white/70 text-xs font-medium whitespace-nowrap">{step.label}</span>
                 {i < STEPS.length - 1 && (
-                  <span className="absolute right-0 top-1/3 -translate-y-1/2 text-white/20 text-xs hidden sm:block">›</span>
+                  <span className="absolute right-0 top-1/3 -translate-y-1/2 text-white/35 text-xs hidden sm:block">›</span>
                 )}
               </div>
             ))}

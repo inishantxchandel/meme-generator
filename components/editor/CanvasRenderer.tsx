@@ -89,7 +89,7 @@ export const CanvasRenderer = forwardRef<CanvasRendererHandle, Props>(
       const ratio = bgImage.naturalWidth / bgImage.naturalHeight
       const stageRatio = width / drawH
       let w: number, h: number
-      // Always cover mode: image fills drawH
+      // Cover mode: image fills drawH area, overflow clipped by canvas bounds
       if (ratio > stageRatio) { h = drawH; w = drawH * ratio }
       else { w = width; h = width / ratio }
       return { x: (width - w) / 2, y: (drawH - h) / 2, w, h }
@@ -156,7 +156,7 @@ export const CanvasRenderer = forwardRef<CanvasRendererHandle, Props>(
           lineHeight={block.lineHeight}
           padding={block.padding}
           wrap="word"
-          ellipsis={!inCaptionBarBlock}
+          ellipsis={!previewMode && !inCaptionBarBlock}
           draggable={!previewMode && block.draggable}
           listening={!previewMode}
           onClick={() => onBlockSelect?.(block.id)}

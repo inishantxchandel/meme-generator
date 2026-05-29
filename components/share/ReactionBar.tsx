@@ -82,15 +82,18 @@ function ReactionButton({
   onToggle: () => void
 }) {
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onToggle}
       aria-pressed={selected}
       aria-label={selected ? `Remove ${label} reaction` : `React with ${label}`}
+      whileHover={{ scale: 1.08 }}
+      whileTap={{ scale: 0.82 }}
+      transition={{ type: "spring", stiffness: 400, damping: 15 }}
       className={`
         flex flex-col items-center justify-center gap-1
         w-[72px] h-[88px] px-2 py-2 rounded-2xl
-        border-2 transition-colors duration-200 cursor-pointer
+        border-2 transition-colors duration-150 cursor-pointer
         ${selected
           ? "bg-violet-600/40 border-violet-400 text-white shadow-lg shadow-violet-500/20"
           : "bg-white/5 border-transparent text-white/70 hover:bg-white/10 hover:border-white/20"
@@ -107,6 +110,6 @@ function ReactionButton({
       >
         {label}
       </span>
-    </button>
+    </motion.button>
   )
 }

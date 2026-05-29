@@ -59,8 +59,19 @@ export function SharePageClient({ meme, initialCounts }: Props) {
         }
       />
 
+      {/* Back nav */}
+      <div className="relative z-10 max-w-[820px] mx-auto px-4 pt-4 pb-0">
+        <Link
+          href="/wall"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/8 hover:bg-white/14 border border-white/15 hover:border-white/30 text-white/90 hover:text-white transition-all text-sm font-semibold cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+        >
+          <span aria-hidden>←</span>
+          Meme Wall
+        </Link>
+      </div>
+
       {/* Centered 2-col layout: meme capped at 480px, reactions panel fixed 300px */}
-      <div className="relative z-10 max-w-[820px] mx-auto px-4 py-6 flex flex-col md:flex-row gap-5 items-start justify-center">
+      <div className="relative z-10 max-w-[820px] mx-auto px-4 py-4 flex flex-col md:flex-row gap-5 items-start justify-center">
 
         {/* Meme canvas */}
         <motion.div
@@ -96,7 +107,7 @@ export function SharePageClient({ meme, initialCounts }: Props) {
           {/* Copy link */}
           <button
             onClick={copyLink}
-            className={`w-full py-3 rounded-xl border text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+            className={`w-full py-3 rounded-xl border text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer ${
               copied
                 ? "bg-green-500/20 border-green-500/50 text-green-400"
                 : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 text-white/70"
