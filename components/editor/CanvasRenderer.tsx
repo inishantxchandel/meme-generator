@@ -122,7 +122,7 @@ export const CanvasRenderer = forwardRef<CanvasRendererHandle, Props>(
         baseFontSize = fitFontSizeToBox(
           text,
           blockWidth - block.padding * 2,
-          maxHeight,
+          maxHeight - block.padding * 2,  // Konva padding shrinks usable height too
           baseFontSize,
           block.lineHeight
         )

@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
+import { useEffect } from "react"
 import { WallMemePreview } from "./WallMemePreview"
 import { useReactions } from "@/hooks/useReactions"
 import type { ReactionCounts, ReactionEmoji } from "@/types/meme"
@@ -24,9 +25,10 @@ export interface WallMeme {
 interface Props {
   meme: WallMeme
   index: number
+  onTotalChange?: (id: string, total: number) => void
 }
 
-export function WallCard({ meme, index }: Props) {
+export function WallCard({ meme, index, onTotalChange }: Props) {
   const initialCounts: ReactionCounts = {
     "😂": meme.reactionCounts["😂"] ?? 0,
     "👍": meme.reactionCounts["👍"] ?? 0,
@@ -36,6 +38,11 @@ export function WallCard({ meme, index }: Props) {
 
   const { counts, reacted, toggleReaction } = useReactions(meme.id, initialCounts)
   const total = Object.values(counts).reduce((a, b) => a + b, 0)
+
+  // Report live total up to WallClient so Popular sort uses real-time counts
+  useEffect(() => {
+    onTotalChange?.(meme.id, total)
+  }, [total]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const caption = meme.caption_top
     ? `"${meme.caption_top}"`

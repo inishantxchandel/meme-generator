@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { Header } from "@/components/layout/Header"
@@ -9,14 +10,36 @@ import { WallCard, type WallMeme } from "@/components/wall/WallCard"
 type SortMode = "latest" | "popular"
 
 export function WallClient({ memes }: { memes: WallMeme[] }) {
+  const router = useRouter()
   const [sortMode, setSortMode] = useState<SortMode>("latest")
+
+  // Bust Next.js router cache on mount so navigating here always shows fresh memes
+  useEffect(() => {
+    router.refresh()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Live totals from WallCard useReactions hooks — used for accurate Popular sort
+  const liveTotalsRef = useRef<Record<string, number>>({})
+  const [liveTotalsVersion, setLiveTotalsVersion] = useState(0)
+
+  const updateTotal = useCallback((id: string, total: number) => {
+    if (liveTotalsRef.current[id] !== total) {
+      liveTotalsRef.current = { ...liveTotalsRef.current, [id]: total }
+      setLiveTotalsVersion((v) => v + 1)
+    }
+  }, [])
 
   const sorted = useMemo(() => {
     if (sortMode === "popular") {
-      return [...memes].sort((a, b) => b.totalReactions - a.totalReactions)
+      return [...memes].sort((a, b) => {
+        const aTotal = liveTotalsRef.current[a.id] ?? a.totalReactions
+        const bTotal = liveTotalsRef.current[b.id] ?? b.totalReactions
+        return bTotal - aTotal
+      })
     }
     return memes
-  }, [memes, sortMode])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memes, sortMode, liveTotalsVersion])
 
   return (
     <main className="min-h-screen bg-zinc-950 relative overflow-hidden">
@@ -99,7 +122,7 @@ export function WallClient({ memes }: { memes: WallMeme[] }) {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-w-lg md:max-w-none mx-auto md:mx-0">
             {sorted.map((meme, i) => (
-              <WallCard key={meme.id} meme={meme} index={i} />
+              <WallCard key={meme.id} meme={meme} index={i} onTotalChange={updateTotal} />
             ))}
           </div>
         )}
